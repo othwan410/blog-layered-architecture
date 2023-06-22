@@ -40,12 +40,13 @@ try {
   console.log(error);
   return res.status(404).json({
     success: false,
-    errorMessage: "'게시글 조회에 실패하였습니다.'",
+    errorMessage: "'게시글 작성에 실패하였습니다.'",
   });
 }
 });
 
 router.get("/posts", async (req, res) => {
+  try {
   const posts = await Posts.findAll({ 
     attributes: ["postId", "UserId",  "title", "content", "createdAt", "updatedAt"],
     include: [
@@ -72,7 +73,13 @@ router.get("/posts", async (req, res) => {
   res.json({
     data: prPosts,
   });
-
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+      errorMessage: "게시글 조회에 실패하였습니다.",
+    });
+  }
 });
 
 router.get("/posts/:postId", async (req, res) => {
