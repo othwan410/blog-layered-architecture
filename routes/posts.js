@@ -2,7 +2,7 @@ const express = require('express');
 const { Posts, Users, sequelize, Likeds } = require('../models');
 const router = express.Router();
 const authMiddleware = require('../middlewares/auth-middleware.js');
-const { Transaction } = require('sequelize');
+const { Transaction, Op } = require('sequelize');
 
 router.post('/posts', authMiddleware, async (req, res) => {
   try {
@@ -48,7 +48,7 @@ router.post('/posts', authMiddleware, async (req, res) => {
 
 router.get('/posts', async (req, res) => {
   try {
-    const posts = await Posts.findAll({
+    const joinPosts = await Posts.findAll({
       attributes: [
         'postId',
         'UserId',
@@ -66,7 +66,7 @@ router.get('/posts', async (req, res) => {
       order: [['createdAt', 'DESC']],
     });
 
-    const prPosts = posts.map((item) => {
+    const posts = joinPosts.map((item) => {
       return {
         postId: item.postId,
         userId: item.User.userId,
@@ -79,7 +79,7 @@ router.get('/posts', async (req, res) => {
     });
 
     res.json({
-      data: prPosts,
+      data: posts,
     });
   } catch (error) {
     console.log(error);
@@ -100,7 +100,7 @@ router.get('/posts/:postId', async (req, res) => {
     }
 
     const { postId } = req.params;
-    const postDetail = await Posts.findOne({
+    const joinpostDetail = await Posts.findOne({
       attributes: [
         'postId',
         'UserId',
@@ -119,7 +119,7 @@ router.get('/posts/:postId', async (req, res) => {
       where: { postId },
     });
 
-    const prPost = [postDetail].map((item) => {
+    const post = [joinpostDetail].map((item) => {
       return {
         postId: item.postId,
         userId: item.User.userId,
@@ -134,7 +134,7 @@ router.get('/posts/:postId', async (req, res) => {
 
     res.json({
       post: {
-        prPost,
+        post,
       },
     });
   } catch (error) {
@@ -238,6 +238,69 @@ router.delete('/posts/:postId', authMiddleware, async (req, res) => {
     return res.status(400).json({
       success: false,
       errorMessage: '게시글 삭제에 실패하였습니다.',
+    });
+  }
+});
+
+//좋아요 누른 게시물들 조회
+router.get('/posts/liked/:userId', async (req, res) => {
+  try {
+    if (!req.params) {
+      return res.status(400).json({
+        success: false,
+        errorMessage: "'데이터 형식이 올바르지 않습니다.'",
+      });
+    }
+
+    const { userId } = req.params;
+    const likedPost = await Likeds.findAll({
+      attributes: ['PostId'],
+      where: { userId },
+    });
+
+    const postsId = likedPost.map((post) => {
+      return post.PostId;
+    });
+
+    const joinPosts = await Posts.findAll({
+      attributes: [
+        'postId',
+        'UserId',
+        'title',
+        'content',
+        'createdAt',
+        'updatedAt',
+      ],
+      include: [
+        {
+          model: Users,
+          attributes: ['nickname'],
+        },
+      ],
+      where: { postid: { [Op.in]: postsId } },
+      order: [['createdAt', 'DESC']],
+    });
+
+    const posts = joinPosts.map((item) => {
+      return {
+        postId: item.postId,
+        userId: item.User.userId,
+        title: item.title,
+        nickname: item.User.nickname,
+        content: item.content,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      };
+    });
+
+    res.json({
+      data: posts,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+      errorMessage: '게시글 조회에 실패하였습니다.',
     });
   }
 });
