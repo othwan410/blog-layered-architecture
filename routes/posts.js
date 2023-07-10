@@ -114,6 +114,7 @@ router.get('/posts/:postId', async (req, res) => {
         {
           model: Users,
           attributes: ['nickname'],
+          required: true,
         },
       ],
       where: { postId },
@@ -268,6 +269,7 @@ router.get('/posts/liked/:userId', async (req, res) => {
         'UserId',
         'title',
         'content',
+        'likedCount',
         'createdAt',
         'updatedAt',
       ],
@@ -275,18 +277,21 @@ router.get('/posts/liked/:userId', async (req, res) => {
         {
           model: Users,
           attributes: ['nickname'],
+          required: true,
         },
       ],
       where: { postid: { [Op.in]: postsId } },
-      order: [['createdAt', 'DESC']],
+      order: [['likedCount', 'DESC']],
     });
 
     const posts = joinPosts.map((item) => {
+      console.log(item.User);
       return {
         postId: item.postId,
         userId: item.User.userId,
         title: item.title,
         nickname: item.User.nickname,
+        likedCount: item.likedCount,
         content: item.content,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,
