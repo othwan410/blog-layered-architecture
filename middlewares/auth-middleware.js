@@ -15,7 +15,7 @@ module.exports = async (req, res, next) => {
   }
 
   try {
-    const { userId } = jwt.verify(authToken, 'custom-secret-key');
+    const { userId } = jwt.verify(authToken, process.env.COOKIE_SECRET);
     res.locals.userId = userId;
     next();
   } catch (err) {

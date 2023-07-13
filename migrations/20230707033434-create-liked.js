@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Likeds', {
-      PostId: {
+      postId: {
         allowNull: false, // NOT NULL
         type: Sequelize.INTEGER,
         references: {
@@ -12,7 +12,7 @@ module.exports = {
         },
         onDelete: 'CASCADE', // 만약 Posts 모델의 Posts 삭제되면
       },
-      UserId: {
+      userId: {
         allowNull: false, // NOT NULL
         type: Sequelize.INTEGER,
         references: {

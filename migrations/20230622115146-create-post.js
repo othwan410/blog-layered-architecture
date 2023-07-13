@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true, // Primary Key (기본키)
         type: Sequelize.INTEGER,
       },
-      UserId: {
+      userId: {
         allowNull: false, // NOT NULL
         type: Sequelize.INTEGER,
         references: {
